@@ -14,7 +14,7 @@ import (
 )
 
 // ProxyFileURL adalah URL sumber proxy
-const ProxyFileURL = "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt"
+const ProxyFileURL = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt"
 
 // TODO: stuck di proxy
 
