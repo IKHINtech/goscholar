@@ -2,6 +2,7 @@ package goscholar
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -11,12 +12,11 @@ import (
 	"time"
 
 	"github.com/gocolly/colly/v2"
+	"golang.org/x/exp/rand"
 )
 
 // ProxyFileURL adalah URL sumber proxy
-const ProxyFileURL = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt"
-
-// TODO: stuck di proxy
+const ProxyFileURL = "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt"
 
 // ProxyList adalah daftar proxy yang akan diperbarui
 var ProxyList []string
@@ -59,11 +59,9 @@ func parseProxyFile(filePath string) error {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
-			log.Println(line)
 			// Tambahkan skema jika tidak ada
 			if !strings.HasPrefix(line, "http://") && !strings.HasPrefix(line, "https://") {
 				line = "http://" + line
-				log.Println(line, "new")
 			}
 			proxies = append(proxies, line)
 		}
@@ -114,6 +112,9 @@ func CrawlGoogleScholarByUserID(userID string) ([]ScholarData, error) {
 			return nil, err
 		}
 	}
+
+	// Seed the random number generator to ensure randomness in proxy selection
+	rand.Seed(uint64(time.Now().UnixNano()))
 	// Create a new collector
 	c := colly.NewCollector(
 		colly.Async(true), // Enable async scraping
@@ -141,13 +142,15 @@ func CrawlGoogleScholarByUserID(userID string) ([]ScholarData, error) {
 	})
 
 	// Rotate proxies
-	proxyIndex := 0
 	c.SetProxyFunc(func(_ *http.Request) (*url.URL, error) {
 		if len(ProxyList) == 0 {
 			return nil, nil
 		}
+		// Randomly pick a proxy
+		proxyIndex := rand.Intn(len(ProxyList)) // Generate a random index
+		fmt.Println(proxyIndex, "=> proxy index")
 		proxy := ProxyList[proxyIndex]
-		proxyIndex = (proxyIndex + 1) % len(ProxyList)
+		fmt.Println(proxy, "=> selected Proxy")
 		return url.Parse(proxy)
 	})
 
